@@ -1,0 +1,27 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'com.github.johnrengelman.shadow' version '7.1.2' // Use the latest version
+
+}
+group 'com.parable'
+version '1.0-SNAPSHOT'
+repositories {
+    mavenCentral()
+}
+dependencies {
+    implementation 'com.amazonaws:aws-lambda-java-core:1.2.1'
+    implementation 'com.amazonaws:aws-lambda-java-events:3.11.0'
+    implementation 'com.github.pengrad:java-telegram-bot-api:7.11.0'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.13.1'
+    implementation 'org.projectlombok:lombok:1.18.36' // Use the latest version
+    implementation platform('software.amazon.awssdk:bom:2.20.111')
+    implementation 'software.amazon.awssdk:dynamodb-enhanced'
+    implementation 'com.google.dagger:dagger:2.53.1'
+    annotationProcessor 'com.google.dagger:dagger-compiler:2.53.1'
+    annotationProcessor 'org.projectlombok:lombok:1.18.36' // Required for annotation processing
+}
+
+application {
+    mainClass = 'com.parable.App' // Specify your main class if applicable
+}
