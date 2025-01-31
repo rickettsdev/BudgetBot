@@ -10,7 +10,7 @@ import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.parable.adapter.PojoMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.parable.command.Command;
 import com.parable.command.CommandFactory;
 import com.parable.command.CommandInvoker;
@@ -26,7 +26,7 @@ import lombok.AllArgsConstructor;
 public final class App implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 
     @Inject
-    PojoMapper mapper;
+    ObjectMapper mapper;
     @Inject
     CommandInvoker invoker;
     @Inject
@@ -49,7 +49,7 @@ public final class App implements RequestHandler<APIGatewayProxyRequestEvent, AP
         commandFactory.setContext(context);
 
         try {
-            TelegramUpdate update = mapper.getObject(input.getBody(), new TypeReference<TelegramUpdate>(){});
+            TelegramUpdate update = mapper.readValue(input.getBody(), new TypeReference<TelegramUpdate>(){});
             if (updateFieldsExist(update)) {
                 attemptCommand(update, context);
             } else {
