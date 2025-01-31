@@ -4,6 +4,7 @@ import { Construct } from 'constructs';
 import * as path from 'path';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb'
 import * as apigateway from 'aws-cdk-lib/aws-apigateway'
+import * as cloudtrail from 'aws-cdk-lib/aws-cloudtrail';
 import { Effect, ManagedPolicy, PolicyDocument, PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { LogGroup, LogRetention, RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { CfnBudget } from 'aws-cdk-lib/aws-budgets';
@@ -122,6 +123,28 @@ export class CdkStack extends cdk.Stack {
     botEndpoint.addMethod('POST', new apigateway.LambdaIntegration(botLambda), {
       authorizationType: apigateway.AuthorizationType.NONE
     });
+
+    const bucket = new cdk.aws_s3.Bucket(this, 'BotCloudTrailBucket', {
+      blockPublicAccess: cdk.aws_s3.BlockPublicAccess.BLOCK_ALL,
+      encryption: cdk.aws_s3.BucketEncryption.S3_MANAGED,
+      lifecycleRules: [{
+        id: 'ExpireAfterOneDay',
+        enabled: true,
+        expiration: cdk.Duration.days(1)
+      }]
+    });
+
+    const trail = new cloudtrail.Trail(this, 'BotLambdaTrail', {
+      bucket,
+      includeGlobalServiceEvents: false,
+      isMultiRegionTrail: false,
+      sendToCloudWatchLogs: true,
+      cloudWatchLogsRetention: cdk.aws_logs.RetentionDays.ONE_DAY
+    });
+
+    trail.addEventSelector(cloudtrail.DataResourceType.LAMBDA_FUNCTION,
+       [`arn:aws:lambda:${this.region}:${this.account}:function:${botLambda.functionName}`]
+    );
 
     new CfnBudget(this, 'BudgetBotBudget', {
       budget: {
