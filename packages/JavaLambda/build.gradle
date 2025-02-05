@@ -4,6 +4,7 @@ plugins {
     id 'com.github.johnrengelman.shadow' version '7.1.2' // Use the latest version
 
 }
+
 group 'com.parable'
 version '1.0-SNAPSHOT'
 repositories {
@@ -18,6 +19,7 @@ dependencies {
     implementation platform('software.amazon.awssdk:bom:2.20.111')
     implementation 'software.amazon.awssdk:dynamodb-enhanced'
     implementation 'com.google.dagger:dagger:2.53.1'
+    implementation 'software.amazon.awssdk:bedrockruntime:2.30.10'
     annotationProcessor 'com.google.dagger:dagger-compiler:2.53.1'
     annotationProcessor 'org.projectlombok:lombok:1.18.36' // Required for annotation processing
 }

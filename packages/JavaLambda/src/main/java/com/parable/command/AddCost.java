@@ -2,7 +2,7 @@ package com.parable.command;
 
 import com.parable.model.PurchaseModel;
 import com.parable.observer.CommandMonitor;
-import com.parable.observer.Observer.MessageTemplate;
+import com.parable.observer.TelegramMessageConstants;
 
 import lombok.Builder;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
@@ -20,7 +20,6 @@ public class AddCost implements Command {
     public void execute() {
         DynamoDbTable<PurchaseModel> table = client.table(tableName, TableSchema.fromClass(PurchaseModel.class));
         table.putItem(model);
-        monitor.notifyObservers(MessageTemplate.MESSAGE_SENT);
+        monitor.notifyObservers(String.format(TelegramMessageConstants.MESSAGE_SENT, model.getCost(), model.getMessage()));
     }
-    
 }

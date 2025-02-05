@@ -34,7 +34,7 @@ export class CdkStack extends cdk.Stack {
       handler: 'com.parable.App::handleRequest',
       code: Code.fromAsset(path.join(__dirname, '../../JavaLambda/build/libs/JavaLambda-1.0-SNAPSHOT-all.jar')),
       memorySize: 1024,
-      timeout: cdk.Duration.seconds(7),
+      timeout: cdk.Duration.seconds(25),
       environment: {
         TABLE_NAME: table.tableName,
         BOT_TOKEN: process.env.BOT_TOKEN ?? "N/A",
@@ -53,6 +53,11 @@ export class CdkStack extends cdk.Stack {
         'dynamodb:*'
       ],
       resources: [table.tableArn],
+    }));
+
+    botLambda.addToRolePolicy(new PolicyStatement({
+      actions: ['bedrock:*'],
+      resources: ['*']  // TODO: limit this to specific models or use Arn for better security
     }));
 
     const apiAccessLogs = new LogGroup(this, 'ApiGatewayAccessLogsProd', {

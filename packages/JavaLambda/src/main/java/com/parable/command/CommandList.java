@@ -1,7 +1,7 @@
 package com.parable.command;
 
 import com.parable.observer.CommandMonitor;
-import com.parable.observer.Observer.MessageTemplate;
+import com.parable.observer.TelegramMessageConstants;
 
 import lombok.Builder;
 
@@ -12,7 +12,7 @@ public class CommandList implements Command {
 
     @Override
     public void execute() {
-        monitor.notifyObservers(MessageTemplate.HELP);
+        monitor.notifyObservers(TelegramMessageConstants.HELP);
     }
 
 }

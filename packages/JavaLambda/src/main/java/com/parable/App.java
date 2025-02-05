@@ -18,7 +18,7 @@ import com.parable.component.DaggerAppComponent;
 import com.parable.model.TelegramUpdate;
 import com.parable.module.ObserverModule;
 import com.parable.observer.CommandMonitor;
-import com.parable.observer.Observer.MessageTemplate;
+import com.parable.observer.TelegramMessageConstants;
 
 import lombok.AllArgsConstructor;
 
@@ -54,12 +54,12 @@ public final class App implements RequestHandler<APIGatewayProxyRequestEvent, AP
                 attemptCommand(update, context);
             } else {
                 // Shouldn't ever happen
-                monitor.notifyObservers(MessageTemplate.ERROR);
+                monitor.notifyObservers(TelegramMessageConstants.ERROR);
                 context.getLogger().log("Some fields that were expcected were not provided.");
                 return response;
             }
         } catch (Exception e) {
-            monitor.notifyObservers(MessageTemplate.ERROR);
+            monitor.notifyObservers(TelegramMessageConstants.ERROR);
             context.getLogger().log("exception " + Arrays.toString(e.getStackTrace()));
             // Need to look into updating response code when we want to have telegram retry from their end.
         }
@@ -77,7 +77,7 @@ public final class App implements RequestHandler<APIGatewayProxyRequestEvent, AP
 
         if (!userId.equals(String.valueOf(ObserverModule.TOM_CHAT_ID))) { // will refactor to support many chat ids
             context.getLogger().log("Unrecognized userID.");
-            monitor.notifyObservers(MessageTemplate.HELP);
+            monitor.notifyObservers(TelegramMessageConstants.HELP);
             return;
         }
 

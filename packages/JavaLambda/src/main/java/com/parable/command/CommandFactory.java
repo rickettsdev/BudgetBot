@@ -1,19 +1,26 @@
 package com.parable.command;
 
 import java.util.Arrays;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.amazonaws.services.lambda.runtime.Context;
-import com.parable.command.GetTotalSinceTime.TimeSince;
+import com.parable.model.LLMPromptModel;
 import com.parable.model.PurchaseModel;
 import com.parable.observer.CommandMonitor;
+import com.parable.provider.DynamoDBPurchaseRecordProvider;
+import com.parable.provider.DynamoDBPurchaseRecordProvider.TimeSince;
 
 import lombok.Builder;
 import lombok.Setter;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
+import software.amazon.awssdk.services.bedrockruntime.BedrockRuntimeClient;
 
 @Builder
 public class CommandFactory {
+    private final BedrockRuntimeClient bedrockClient;
     private final DynamoDbEnhancedClient client;
+    private final DynamoDBPurchaseRecordProvider provider;
     private final CommandMonitor monitor;
     private final String tableName;
     @Setter
@@ -37,13 +44,26 @@ public class CommandFactory {
                     .build() : null;
                 break;
             case "/getTotalToday" : 
-                command = getTotalTimeSince(TimeSince.TODAY, userId);
+                command = getTotalTimeSince(TimeSince.TODAY);
                 break;
             case "/getTotalWeek" : 
-                command = getTotalTimeSince(TimeSince.THISWEEK, userId);
+                command = getTotalTimeSince(TimeSince.THISWEEK);
                 break;
             case "/getTotalMonth" : 
-                command = getTotalTimeSince(TimeSince.THISMONTH, userId);
+                command = getTotalTimeSince(TimeSince.THISMONTH);
+                break;
+            case "/ask":
+                command = LLMPrompt.builder()
+                .bedrockClient(bedrockClient)
+                .context(context)
+                .model(
+                    LLMPromptModel.builder()
+                        .modelId("us.meta.llama3-3-70b-instruct-v1:0")
+                        .prompt(Stream.of(tokens).skip(1).collect(Collectors.joining(" ")))
+                    .build())
+                .purchaseRecordProvider(provider)
+                .monitor(monitor)
+                .build();
                 break;
             default :
                 command = CommandList.builder()
@@ -53,14 +73,12 @@ public class CommandFactory {
         return command;
     }
 
-    private GetTotalSinceTime getTotalTimeSince(TimeSince time, String userId) {
+    private GetTotalSinceTime getTotalTimeSince(TimeSince time) {
         return GetTotalSinceTime.builder()
-            .client(client)
             .monitor(monitor)
-            .tableName(tableName)
             .timeSince(time)
-            .chatId(userId)
             .context(context)
+            .provider(provider)
             .build();
     }
 }
