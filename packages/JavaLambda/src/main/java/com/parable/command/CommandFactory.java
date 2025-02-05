@@ -1,6 +1,5 @@
 package com.parable.command;
 
-import java.util.Arrays;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -36,7 +35,7 @@ public class CommandFactory {
                     .model(PurchaseModel.builder()
                             .id(userId)
                             .timestamp(timestamp)
-                            .message(Arrays.toString(tokens))
+                            .message(Stream.of(tokens).skip(2).collect(Collectors.joining(" ")))
                             .cost(Double.valueOf(tokens[1]))
                             .build())
                     .monitor(monitor)
