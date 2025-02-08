@@ -1,6 +1,7 @@
 package com.parable.module;
 
 import com.parable.provider.DynamoDBPurchaseRecordProvider;
+import com.parable.provider.SubscriberRecordProvider;
 
 import dagger.Module;
 import dagger.Provides;
@@ -36,7 +37,15 @@ public class AWSModule {
         return DynamoDBPurchaseRecordProvider.builder()
                 .chatId(Long.toString(ObserverModule.TOM_CHAT_ID))
                 .client(client)
-                .tableName(CommandModule.TABLE_NAME)
+                .tableName(CommandModule.PURCHASE_TABLE_NAME)
                 .build();
-    } 
+    }
+
+    @Provides
+    public SubscriberRecordProvider getSubscriberRecordProvider(DynamoDbEnhancedClient client) {
+        return SubscriberRecordProvider.builder()
+                        .client(client)
+                        .tableName(CommandModule.SUBSCRIBER_TABLE_NAME)
+                    .build();
+    }
 }

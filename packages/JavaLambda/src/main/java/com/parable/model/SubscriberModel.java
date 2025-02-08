@@ -10,18 +10,16 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbParti
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortKey;
 
 @Jacksonized
-@DynamoDbImmutable(builder = PurchaseModel.PurchaseModelBuilder.class)
+@DynamoDbImmutable(builder = SubscriberModel.SubscriberModelBuilder.class)
 @Value
 @Builder
-public class PurchaseModel {
+public class SubscriberModel {
     @Getter(onMethod = @__({@DynamoDbPartitionKey}))
-    String id;
-    @Getter(onMethod = @__({@DynamoDbSortKey}))
-    Long timestamp;
-    @Getter(onMethod = @__({@DynamoDbAttribute("cost")}))
-    Double cost;
-    @Getter(onMethod = @__({@DynamoDbAttribute("message")}))
-    String message;
-    @Getter(onMethod = @__({@DynamoDbAttribute("subscriber")}))
     String subscriber;
+    @Getter(onMethod = @__({@DynamoDbSortKey}))
+    String token;
+    @Getter(onMethod = @__({@DynamoDbAttribute("ownerId")}))
+    String ownerId;
+    @Getter(onMethod = @__({@DynamoDbAttribute("botToken")}))
+    String botToken;
 }

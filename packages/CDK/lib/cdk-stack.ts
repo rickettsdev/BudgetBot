@@ -29,6 +29,22 @@ export class CdkStack extends cdk.Stack {
       partitionKey: { name: 'timestamp', type: dynamodb.AttributeType.NUMBER },
     });
 
+    const subscriberTable = new dynamodb.Table(this, 'SubscriberTable', {
+      partitionKey: { name: 'subscriber', type: dynamodb.AttributeType.STRING },
+      sortKey: { name: 'token', type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+    });
+
+    subscriberTable.addGlobalSecondaryIndex({
+      indexName: 'TokenIndex',
+      partitionKey: { name: 'token', type: dynamodb.AttributeType.STRING },
+    });
+
+    subscriberTable.addGlobalSecondaryIndex({
+      indexName: 'OwnerIndex',
+      partitionKey: { name: 'ownerId', type: dynamodb.AttributeType.STRING },
+    });
+
     const botLambda = new Function(this, 'BudgetBot', {
       runtime: Runtime.JAVA_11,
       handler: 'com.parable.App::handleRequest',
@@ -36,7 +52,8 @@ export class CdkStack extends cdk.Stack {
       memorySize: 1024,
       timeout: cdk.Duration.seconds(25),
       environment: {
-        TABLE_NAME: table.tableName,
+        PURCHASE_TABLE_NAME: table.tableName,
+        SUBSCRIBER_TABLE_NAME: subscriberTable.tableName,
         BOT_TOKEN: process.env.BOT_TOKEN ?? "N/A",
         CHAT_ID: process.env.CHAT_ID ?? "N/A"
       }
@@ -52,7 +69,7 @@ export class CdkStack extends cdk.Stack {
       actions: [
         'dynamodb:*'
       ],
-      resources: [table.tableArn],
+      resources: [table.tableArn, subscriberTable.tableArn],
     }));
 
     botLambda.addToRolePolicy(new PolicyStatement({

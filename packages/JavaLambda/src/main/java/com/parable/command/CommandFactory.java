@@ -20,36 +20,37 @@ public class CommandFactory {
     private final BedrockRuntimeClient bedrockClient;
     private final DynamoDbEnhancedClient client;
     private final DynamoDBPurchaseRecordProvider provider;
-    private final CommandMonitor monitor;
-    private final String tableName;
+    private final String purchaseTableName;
+    private final String subscriberTableName;
     @Setter
     private Context context;
 
-    public Command createCommand(String[] tokens, String userId, Long timestamp) {
+    public Command createCommand(String[] tokens, String ownerId, String subscriberId, Long timestamp, CommandMonitor localMonitor) {
         String commandString = tokens.length > 0 ? tokens[0] : "";
-        Command command;
+        Command command = null;
         switch (commandString) {
-            case "/add" : 
+            case "/add" :
                 command = tokens.length > 1 ? AddCost.builder()
                     .client(client)
                     .model(PurchaseModel.builder()
-                            .id(userId)
+                            .id(ownerId)
+                            .subscriber(ownerId.equals(subscriberId) ? null : subscriberId)
                             .timestamp(timestamp)
                             .message(Stream.of(tokens).skip(2).collect(Collectors.joining(" ")))
                             .cost(Double.valueOf(tokens[1]))
                             .build())
-                    .monitor(monitor)
-                    .tableName(tableName)
+                    .monitor(localMonitor)
+                    .tableName(purchaseTableName)
                     .build() : null;
                 break;
-            case "/getTotalToday" : 
-                command = getTotalTimeSince(TimeSince.TODAY);
+            case "/getTotalToday" :
+                command = getTotalTimeSince(TimeSince.TODAY, localMonitor);
                 break;
-            case "/getTotalWeek" : 
-                command = getTotalTimeSince(TimeSince.THISWEEK);
+            case "/getTotalWeek" :
+                command = getTotalTimeSince(TimeSince.THISWEEK, localMonitor);
                 break;
-            case "/getTotalMonth" : 
-                command = getTotalTimeSince(TimeSince.THISMONTH);
+            case "/getTotalMonth" :
+                command = getTotalTimeSince(TimeSince.THISMONTH, localMonitor);
                 break;
             case "/ask":
                 command = LLMPrompt.builder()
@@ -61,20 +62,29 @@ public class CommandFactory {
                         .prompt(Stream.of(tokens).skip(1).collect(Collectors.joining(" ")))
                     .build())
                 .purchaseRecordProvider(provider)
-                .monitor(monitor)
+                .monitor(localMonitor)
+                .build();
+                break;
+            case "/subscriberAdd":
+                command = SubscriberAdd.builder()
+                    .client(client)
+                    .monitor(localMonitor)
+                    .ownerId(ownerId)
+                    .subscriberBotToken(tokens[2])
+                    .subscriberId(tokens[1])
+                    .tableName(subscriberTableName)
+                    .context(context)
                 .build();
                 break;
             default :
-                command = CommandList.builder()
-                    .monitor(monitor)
-                    .build();
+                break;
         }
-        return command;
+        return command == null ? CommandList.builder().monitor(localMonitor).build() : command;
     }
 
-    private GetTotalSinceTime getTotalTimeSince(TimeSince time) {
+    private GetTotalSinceTime getTotalTimeSince(TimeSince time, CommandMonitor localMonitor) {
         return GetTotalSinceTime.builder()
-            .monitor(monitor)
+            .monitor(localMonitor)
             .timeSince(time)
             .context(context)
             .provider(provider)
