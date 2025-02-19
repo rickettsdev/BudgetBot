@@ -65,7 +65,7 @@ public class CommandFactory {
                 .monitor(localMonitor)
                 .build();
                 break;
-            case "/subscriberAdd":
+            case "/subscriberAdd": // TODO: need to create admin commands section
                 command = SubscriberAdd.builder()
                     .client(client)
                     .monitor(localMonitor)

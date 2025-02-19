@@ -1,5 +1,6 @@
 package com.parable;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -92,11 +93,10 @@ public final class App implements RequestHandler<APIGatewayProxyRequestEvent, AP
         }
 
         SubscriberModel model = models.get(0);
-        String primaryId = model.getOwnerId();
-        String secondaryId = model.getSubscriber();
 
         CommandMonitor localMonitor = CommandMonitor.builder().observers(generateLocalObservers(model)).build();
-        Command command = commandFactory.createCommand(tokens, primaryId, secondaryId, update.getMessage().getDate(), localMonitor);
+        Command command = commandFactory.createCommand(tokens, model.getOwnerId(), model.getSubscriber(),
+                            update.getMessage().getDate(), localMonitor);
         invoker.executeCommand(command);
     }
 
@@ -105,10 +105,11 @@ public final class App implements RequestHandler<APIGatewayProxyRequestEvent, AP
         // Should only ever be a single entry for subscriberId/token query.
         String subscriberId = model.getSubscriber();
         String ownerId = model.getOwnerId();
-        List<Observer> localObservers = List.of(TelegramObserver.builder()
-                                                    .bot(new TelegramBot(model.getBotToken()))
-                                                    .chatId(Long.valueOf(subscriberId))
-                                                .build());
+        List<Observer> localObservers = new ArrayList<>();
+        localObservers.add(TelegramObserver.builder()
+                                .bot(new TelegramBot(model.getBotToken()))
+                                .chatId(Long.valueOf(subscriberId))
+                            .build());
         if (!subscriberId.equals(ownerId)) {
             List<SubscriberModel> ownerModels = subscriberRecordProvider.apply(ownerId, "");
             for (SubscriberModel current: ownerModels) {

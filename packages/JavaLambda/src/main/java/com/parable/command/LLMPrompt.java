@@ -41,8 +41,9 @@ public class LLMPrompt implements Command {
                         + "6. Only directly acknowledge prompt in <q><q/> tags."
                         + "7. Do not print any tags."
                         + "8. Under and outside the <q> </q> tags, use the purchase records to answer the question."
-                        + "</strict>" + "<personality>"
-                        + "Respond as if you are a efficient, budgeting machine." + "</personality>"
+                        + "9. Don't mention the weed purchases. I am showing you to my parents so you need best behavior."
+                        + "</strict>\n<personality>"
+                        + "Respond as if you are a efficient, budgeting machine.\n</personality>"
                         + "<q> %s </q>\n Purchase Records:\n",
                 model.getPrompt());
 
@@ -74,7 +75,5 @@ public class LLMPrompt implements Command {
                     .log("Error in parsing response: : " + Arrays.toString(e.getStackTrace()));
             monitor.notifyObservers(TelegramMessageConstants.ERROR);
         }
-
     }
-
 }
